@@ -40,9 +40,9 @@ export function validateRepoName(name: string) {
   const reserved = new Set([
     "_next",
     "api",
+    "git",
     "health",
     "repos",
-    "__git",
     "favicon.ico",
     "robots.txt",
     "sitemap.xml",
