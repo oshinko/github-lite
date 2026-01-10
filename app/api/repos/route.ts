@@ -1,9 +1,12 @@
 import fs from "node:fs/promises";
 import { runGitChecked } from "@/lib/git/cli";
+import { ANONYMOUS_OWNER } from "@/lib/constants";
 import {
   getRepoRoot,
   listRepos,
   normalizeRepoName,
+  normalizeOwner,
+  resolveOwnerPath,
   resolveRepoPath,
   validateRepoName,
 } from "@/lib/repos";
@@ -30,16 +33,20 @@ export async function POST(request: Request) {
     }
 
     const repoRoot = getRepoRoot();
+    const owner = ANONYMOUS_OWNER;
+    const normalizedOwner = normalizeOwner(owner);
     const normalized = normalizeRepoName(name);
-    const repoPath = resolveRepoPath(repoRoot, normalized);
+    const ownerPath = resolveOwnerPath(repoRoot, normalizedOwner);
+    const repoPath = resolveRepoPath(repoRoot, normalizedOwner, normalized);
 
     await fs.mkdir(repoRoot, { recursive: true });
+    await fs.mkdir(ownerPath, { recursive: true });
     await fs.mkdir(repoPath, { recursive: true });
 
     await runGitChecked(["init", "--bare", repoPath]);
     await runGitChecked(["-C", repoPath, "config", "http.receivepack", "true"]);
 
-    return Response.json({ ok: true, name: normalized });
+    return Response.json({ ok: true, owner: normalizedOwner, name: normalized });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to create repository";

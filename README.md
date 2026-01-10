@@ -5,10 +5,10 @@ Git Smart HTTP は `git http-backend` を呼び出して処理します。
 
 ## できること
 
-- `GIT_PROJECT_ROOT` 配下の bare リポジトリ（`*.git`）を一覧表示: `GET /repos`
-- リポジトリのツリー表示・ファイル閲覧: `GET /<repo>/tree?ref=...`
+- `GIT_PROJECT_ROOT/<owner>` 配下の bare リポジトリ（`*.git`）を一覧表示: `GET /repos`
+- リポジトリのツリー表示・ファイル閲覧: `GET /<owner>/<repo>/tree?ref=...`
 - bare リポジトリの作成 API: `POST /api/repos`
-- Git Smart HTTP（clone/fetch/push）: `http://localhost:3000/<repo>` または `http://localhost:3000/<repo>.git`
+- Git Smart HTTP（clone/fetch/push）: `http://localhost:3000/<owner>/<repo>` または `http://localhost:3000/<owner>/<repo>.git`
 
 ## 必要なもの
 
@@ -43,13 +43,13 @@ npm run dev
 ### UI
 
 - 一覧: `GET /repos`
-- リポジトリトップ: `GET /<repo>`（デフォルトブランチへリダイレクト）
-- ツリー/ファイル: `GET /<repo>/tree/<path>?ref=<branch|sha>`
+- リポジトリトップ: `GET /<owner>/<repo>`（デフォルトブランチへリダイレクト）
+- ツリー/ファイル: `GET /<owner>/<repo>/tree/<path>?ref=<branch|sha>`
 
 ### Git（clone / fetch / push）
 
 ```bash
-git clone http://localhost:3000/<repo>
+git clone http://localhost:3000/<owner>/<repo>
 ```
 
 UI から作成したリポジトリは `http.receivepack=true` を自動設定します。  
@@ -61,19 +61,25 @@ git -C /path/to/<repo>.git config http.receivepack true
 
 ## Smart HTTP のルーティング
 
-- Git クライアントからの Smart HTTP リクエスト（`/info/refs`, `/git-upload-pack`, `/git-receive-pack`, `/objects`, `/HEAD`）のみ、`middleware.ts` で `GET/POST /<repo>(.git)/...` を内部ルート `GET/POST /git/<repo>/...` にリライトします（実体は `app/git/[repo]/[[...path]]/route.ts`）。
-- 通常のページ遷移（例: `GET /<repo>`）はリライトされません。
+- Git クライアントからの Smart HTTP リクエスト（`/info/refs`, `/git-upload-pack`, `/git-receive-pack`, `/objects`, `/HEAD`）のみ、`middleware.ts` で `GET/POST /<owner>/<repo>(.git)/...` を内部ルート `GET/POST /git/<owner>/<repo>/...` にリライトします（実体は `app/git/[owner]/[repo]/[[...path]]/route.ts`）。
+- 通常のページ遷移（例: `GET /<owner>/<repo>`）はリライトされません。
 
 ## API
 
 - `GET /health` -> `{ ok: true }`
-- `GET /api/repos` -> `{ repos: { name: string; dir: string; defaultBranch: string }[] }`
-- `POST /api/repos` body: `{ "name": "my-repo" }` -> `{ ok: true, name: "my-repo" }`
+- `GET /api/repos` -> `{ repos: { owner: string; name: string; dir: string; defaultBranch: string }[] }`
+- `POST /api/repos` body: `{ "name": "my-repo" }` -> `{ ok: true, owner: "anonymous", name: "my-repo" }`
 
 ## 環境変数
 
 - `GIT_PROJECT_ROOT`（必須）: bare リポジトリ（`*.git`）を置くディレクトリ
+  - 例: `GIT_PROJECT_ROOT/anonymous/<repo>.git`
 - `GIT_HTTP_EXPORT_ALL`（任意）: 未設定時は `"1"` を使用します
+
+## Owner について
+
+現状は匿名ユーザーのみで、作成先 owner は `anonymous` 固定です。  
+将来的に `/<owner>/<repo>` 形式で複数 owner を扱えるようにする前提で設計しています。
 
 ## 注意
 

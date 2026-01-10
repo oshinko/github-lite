@@ -38,9 +38,15 @@ export default async function ReposPage() {
         ) : null}
 
         {repos.map((repo) => (
-          <Link className="card link-card" key={repo.name} href={`/${repo.name}`}>
+          <Link
+            className="card link-card"
+            key={`${repo.owner}/${repo.name}`}
+            href={`/${repo.owner}/${repo.name}`}
+          >
             <div className="card-title">{repo.name}</div>
-            <div className="card-meta">default: {repo.defaultBranch}</div>
+            <div className="card-meta">
+              {repo.owner} · default: {repo.defaultBranch}
+            </div>
           </Link>
         ))}
       </section>

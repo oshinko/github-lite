@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-function isGitSmartHttpRequest(req: NextRequest, repo: string, rest: string[]) {
-  if (!repo || rest.length === 0) return false;
+function isGitSmartHttpRequest(
+  req: NextRequest,
+  owner: string,
+  repo: string,
+  rest: string[]
+) {
+  if (!owner || !repo || rest.length === 0) return false;
 
   const first = rest[0] ?? "";
   const second = rest[1] ?? "";
@@ -24,20 +29,21 @@ function isGitSmartHttpRequest(req: NextRequest, repo: string, rest: string[]) {
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const parts = pathname.split("/").filter(Boolean);
-  if (parts.length === 0) return NextResponse.next();
+  if (parts.length < 2) return NextResponse.next();
 
-  const rawRepo = parts[0] ?? "";
+  const owner = parts[0] ?? "";
+  const rawRepo = parts[1] ?? "";
   const repo = rawRepo.replace(/\.git$/i, "");
 
-  if (!repo) return NextResponse.next();
+  if (!owner || !repo) return NextResponse.next();
 
-  const rest = parts.slice(1);
-  if (!isGitSmartHttpRequest(request, repo, rest)) {
+  const rest = parts.slice(2);
+  if (!isGitSmartHttpRequest(request, owner, repo, rest)) {
     return NextResponse.next();
   }
 
   const url = request.nextUrl.clone();
-  url.pathname = `/git/${repo}/${rest.join("/")}`;
+  url.pathname = `/git/${owner}/${repo}/${rest.join("/")}`;
   return NextResponse.rewrite(url);
 }
 

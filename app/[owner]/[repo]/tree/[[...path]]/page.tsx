@@ -6,7 +6,7 @@ import { getDefaultBranch, hasAnyRef, listTree, readBlob } from "@/lib/git/brows
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  params: { repo: string; path?: string[] };
+  params: { owner: string; repo: string; path?: string[] };
   searchParams: { ref?: string };
 };
 
@@ -23,12 +23,12 @@ function sortEntries(entries: Awaited<ReturnType<typeof listTree>>) {
 }
 
 export default async function RepoTreePage({ params, searchParams }: PageProps) {
-  const { repo: rawRepo, path: pathSegments } = await params;
+  const { owner, repo: rawRepo, path: pathSegments } = await params;
   const { ref: refParam } = await searchParams;
   const repo = rawRepo.replace(/\.git$/i, "");
 
   const repoRoot = getRepoRoot();
-  const repoPath = resolveRepoPath(repoRoot, repo);
+  const repoPath = resolveRepoPath(repoRoot, owner, repo);
   if (!(await repoExists(repoPath))) {
     return notFound();
   }
@@ -45,12 +45,14 @@ export default async function RepoTreePage({ params, searchParams }: PageProps) 
         <nav className="breadcrumbs">
           <Link href="/repos">Repos</Link>
           <span>/</span>
-          <Link href={`/${repo}`}>{repo}</Link>
+          <Link href={`/${owner}/${repo}`}>{repo}</Link>
           <span>/</span>
           <span className="crumb">{path}</span>
         </nav>
         <header className="page-header">
-          <p className="eyebrow">{repo}</p>
+          <p className="eyebrow">
+            {owner}/{repo}
+          </p>
           <h1>{path}</h1>
           <p className="subtitle">ref: {ref}</p>
         </header>
@@ -69,17 +71,19 @@ export default async function RepoTreePage({ params, searchParams }: PageProps) 
         <nav className="breadcrumbs">
           <Link href="/repos">Repos</Link>
           <span>/</span>
-          <Link href={`/${repo}`}>{repo}</Link>
+          <Link href={`/${owner}/${repo}`}>{repo}</Link>
           </nav>
           <header className="page-header">
-            <p className="eyebrow">{repo}</p>
+            <p className="eyebrow">
+              {owner}/{repo}
+            </p>
             <h1>Empty repository</h1>
             <p className="subtitle">No commits found yet.</p>
           </header>
           <section className="card">
             <p className="muted">Push your first commit to see files here.</p>
             <pre className="code-block">
-              git clone http://localhost:3000/{repo}{"\n"}
+              git clone http://localhost:3000/{owner}/{repo}{"\n"}
               cd {repo}{"\n"}
               echo "# {repo}" &gt; README.md{"\n"}
               git add README.md{"\n"}
@@ -104,7 +108,7 @@ export default async function RepoTreePage({ params, searchParams }: PageProps) 
       <nav className="breadcrumbs">
         <Link href="/repos">Repos</Link>
         <span>/</span>
-        <Link href={`/${repo}`}>{repo}</Link>
+        <Link href={`/${owner}/${repo}`}>{repo}</Link>
         {path ? (
           <>
             <span>/</span>
@@ -114,15 +118,17 @@ export default async function RepoTreePage({ params, searchParams }: PageProps) 
       </nav>
 
       <header className="page-header">
-        <p className="eyebrow">{repo}</p>
+        <p className="eyebrow">
+          {owner}/{repo}
+        </p>
         <h1>{path || "Repository root"}</h1>
         <p className="subtitle">ref: {ref}</p>
       </header>
 
       <section className="card">
         <ul className="tree">
-          {entries.map((entry) => {
-            const href = `/${repo}/tree/${
+        {entries.map((entry) => {
+            const href = `/${owner}/${repo}/tree/${
               path ? `${path}/` : ""
             }${entry.name}?ref=${encodeURIComponent(ref)}`;
             return (

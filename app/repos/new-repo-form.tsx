@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ANONYMOUS_OWNER } from "@/lib/constants";
 
 export default function NewRepoForm() {
   const router = useRouter();
@@ -45,7 +46,9 @@ export default function NewRepoForm() {
       <div className="form-header">
         <div>
           <div className="card-title">New repository</div>
-          <div className="card-meta">Create a bare repo in GIT_PROJECT_ROOT.</div>
+          <div className="card-meta">
+            Create a bare repo in GIT_PROJECT_ROOT/{ANONYMOUS_OWNER}.
+          </div>
         </div>
       </div>
       <label className="field">
