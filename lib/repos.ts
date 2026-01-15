@@ -9,20 +9,47 @@ export type RepoSummary = {
   defaultBranch: string;
 };
 
+const BUCKET_COUNT = 1;
+
+function hashOwner(owner: string) {
+  let hash = 5381;
+  for (let i = 0; i < owner.length; i += 1) {
+    hash = (hash * 33) ^ owner.charCodeAt(i);
+  }
+  return hash >>> 0;
+}
+
+function getBucketIndex(owner: string) {
+  const count = Math.max(1, Math.floor(BUCKET_COUNT));
+  return hashOwner(owner) % count;
+}
+
 export function getRepoRoot() {
   const root = process.env.GIT_PROJECT_ROOT ?? "";
   if (!root) {
     throw new Error("GIT_PROJECT_ROOT is required");
   }
-  return root;
+  return path.resolve(root);
+}
+
+export function getBucketNameForOwner(owner: string) {
+  return getBucketIndex(owner).toString(16).padStart(2, "0");
+}
+
+export function getBucketRoot(repoRoot: string, owner: string) {
+  return path.join(repoRoot, getBucketNameForOwner(owner));
 }
 
 export function resolveOwnerPath(repoRoot: string, owner: string) {
   const normalized = normalizeOwner(owner);
   const root = path.resolve(repoRoot);
-  const fullPath = path.resolve(repoRoot, normalized);
+  const bucketRoot = path.resolve(root, getBucketNameForOwner(normalized));
+  const fullPath = path.resolve(bucketRoot, normalized);
 
-  if (fullPath !== root && !fullPath.startsWith(root + path.sep)) {
+  if (
+    fullPath !== bucketRoot &&
+    !fullPath.startsWith(bucketRoot + path.sep)
+  ) {
     throw new Error("Invalid repository path");
   }
 
@@ -34,9 +61,13 @@ export function resolveRepoPath(repoRoot: string, owner: string, name: string) {
   const normalizedRepo = normalizeRepoName(name);
   const repoDir = `${normalizedRepo}.git`;
   const root = path.resolve(repoRoot);
-  const fullPath = path.resolve(repoRoot, normalizedOwner, repoDir);
+  const bucketRoot = path.resolve(root, getBucketNameForOwner(normalizedOwner));
+  const fullPath = path.resolve(bucketRoot, normalizedOwner, repoDir);
 
-  if (fullPath !== root && !fullPath.startsWith(root + path.sep)) {
+  if (
+    fullPath !== bucketRoot &&
+    !fullPath.startsWith(bucketRoot + path.sep)
+  ) {
     throw new Error("Invalid repository path");
   }
 
@@ -76,7 +107,8 @@ export function validateOwner(owner: string) {
 }
 
 export async function listRepos(repoRoot: string) {
-  const ownerEntries = await fs.readdir(repoRoot, { withFileTypes: true });
+  const bucketRoot = getBucketRoot(repoRoot, "bucket");
+  const ownerEntries = await fs.readdir(bucketRoot, { withFileTypes: true });
   const repos: RepoSummary[] = [];
 
   for (const ownerEntry of ownerEntries) {
@@ -85,7 +117,7 @@ export async function listRepos(repoRoot: string) {
     if (owner.endsWith(".git")) continue;
     if (validateOwner(owner)) continue;
 
-    const ownerPath = path.join(repoRoot, owner);
+    const ownerPath = path.join(bucketRoot, owner);
     const repoEntries = await fs.readdir(ownerPath, { withFileTypes: true });
     for (const repoEntry of repoEntries) {
       if (!repoEntry.isDirectory()) continue;

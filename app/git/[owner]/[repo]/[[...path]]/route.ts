@@ -1,4 +1,5 @@
 import { runGitHttpBackend } from "@/lib/git/http-backend";
+import { getBucketNameForOwner } from "@/lib/repos";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,7 +11,7 @@ function buildPathInfo(
 ) {
   const rest =
     pathSegments && pathSegments.length > 0 ? `/${pathSegments.join("/")}` : "";
-  return `/${owner}/${repo}.git${rest}`;
+  return `/${getBucketNameForOwner(owner)}/${owner}/${repo}.git${rest}`;
 }
 
 async function handle(

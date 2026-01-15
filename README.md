@@ -1,11 +1,14 @@
 ﻿# GitHub Lite
 
-Next.js（App Router）だけで動く、最小構成の Git ホスティング + リポジトリ閲覧 UI です。  
-Git Smart HTTP は `git http-backend` を呼び出して処理します。
+匿名参加 OK のミニマル Git ホスティング。
+ブラウザでリポジトリを閲覧し、Smart HTTP で clone / fetch / push できます。
+
+Anonymous-friendly minimal Git hosting.
+Browse repositories in the browser and clone/fetch/push via Git Smart HTTP.
 
 ## できること
 
-- `GIT_PROJECT_ROOT/<owner>` 配下の bare リポジトリ（`*.git`）を一覧表示: `GET /repos`
+- `GIT_PROJECT_ROOT/00/<owner>` 配下の bare リポジトリ（`*.git`）を一覧表示: `GET /repos`
 - リポジトリのツリー表示・ファイル閲覧: `GET /<owner>/<repo>/tree?ref=...`
 - bare リポジトリの作成 API: `POST /api/repos`
 - Git Smart HTTP（clone/fetch/push）: `http://localhost:3000/<owner>/<repo>` または `http://localhost:3000/<owner>/<repo>.git`
@@ -73,7 +76,7 @@ git -C /path/to/<repo>.git config http.receivepack true
 ## 環境変数
 
 - `GIT_PROJECT_ROOT`（必須）: bare リポジトリ（`*.git`）を置くディレクトリ
-  - 例: `GIT_PROJECT_ROOT/anonymous/<repo>.git`
+  - 例: `GIT_PROJECT_ROOT/00/anonymous/<repo>.git`
 - `GIT_HTTP_EXPORT_ALL`（任意）: 未設定時は `"1"` を使用します
 
 ## Owner について

@@ -47,7 +47,7 @@ export default function NewRepoForm() {
         <div>
           <div className="card-title">New repository</div>
           <div className="card-meta">
-            Create a bare repo in GIT_PROJECT_ROOT/{ANONYMOUS_OWNER}.
+            Create a bare repo in GIT_PROJECT_ROOT/00/{ANONYMOUS_OWNER}.
           </div>
         </div>
       </div>
