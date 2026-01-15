@@ -64,7 +64,7 @@ git -C /path/to/<repo>.git config http.receivepack true
 
 ## Smart HTTP のルーティング
 
-- Git クライアントからの Smart HTTP リクエスト（`/info/refs`, `/git-upload-pack`, `/git-receive-pack`, `/objects`, `/HEAD`）のみ、`middleware.ts` で `GET/POST /<owner>/<repo>(.git)/...` を内部ルート `GET/POST /git/<owner>/<repo>/...` にリライトします（実体は `app/git/[owner]/[repo]/[[...path]]/route.ts`）。
+- Git クライアントからの Smart HTTP リクエスト（`/info/refs`, `/git-upload-pack`, `/git-receive-pack`, `/objects`, `/HEAD`）のみ、`proxy.ts` で `GET/POST /<owner>/<repo>(.git)/...` を内部ルート `GET/POST /git/<owner>/<repo>/...` にリライトします（実体は `app/git/[owner]/[repo]/[[...path]]/route.ts`）。
 - 通常のページ遷移（例: `GET /<owner>/<repo>`）はリライトされません。
 
 ## API
